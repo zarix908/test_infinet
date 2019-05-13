@@ -17,8 +17,10 @@ function setNeighbours(
   for (const road of roads) {
     if (!neighbours.has(road.from)) {
       neighbours.set(road.from, []);
-      minTimes.set(road.from, Infinity);
     }
+
+    minTimes.set(road.from, Infinity);
+    minTimes.set(road.to, Infinity);
 
     // @ts-ignore
     neighbours.get(road.from).push({ cross_number: road.to, time: road.time });
