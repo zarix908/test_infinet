@@ -34,8 +34,13 @@ function setMinTimes(
   visited: Map<number, boolean>,
   parents: Map<number, number>
 ) {
-  // @ts-ignore
-  for (const { cross_number, time } of neighbours.get(current)) {
+  const currentNeighbours = neighbours.get(current);
+
+  if (currentNeighbours === undefined) {
+    return;
+  }
+
+  for (const { cross_number, time } of currentNeighbours) {
     if (visited.has(cross_number)) {
       continue;
     }
