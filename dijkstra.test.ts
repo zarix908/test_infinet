@@ -1,117 +1,92 @@
-interface Road {
-  from: number;
-  to: number;
-  time: number;
-}
+import { navigate } from "../../src/model/dijkstra";
 
-interface Neighbour {
-  cross_number: number;
-  time: number;
-}
+describe("dijkstra should", () => {
+  it("find path in oriented graph", () => {
+    const roads = [
+      { from: 0, to: 2, time: 5 },
+      { from: 1, to: 0, time: 1 },
+      { from: 2, to: 1, time: 5 }
+    ];
 
-function setNeighbours(
-  roads: Road[],
-  neighbours: Map<number, Neighbour[]>,
-  minTimes: Map<number, number>
-) {
-  for (const road of roads) {
-    if (!neighbours.has(road.from)) {
-      neighbours.set(road.from, []);
-    }
+    const result = navigate(roads, 0, 1);
 
-    minTimes.set(road.from, Infinity);
-    minTimes.set(road.to, Infinity);
+    expect(result).toEqual({ path: [0, 2, 1], time: 10 });
+  });
 
-    // @ts-ignore
-    neighbours.get(road.from).push({ cross_number: road.to, time: road.time });
-  }
-}
+  it("not be simplicity greedy", () => {
+    const roads = [
+      { from: 0, to: 1, time: 2 },
+      { from: 0, to: 2, time: 10 },
+      { from: 1, to: 3, time: 100 },
+      { from: 2, to: 3, time: 10 }
+    ];
 
-function setMinTimes(
-  current: number,
-  neighbours: Map<number, Neighbour[]>,
-  minTimes: Map<number, number>,
-  visited: Map<number, boolean>,
-  parents: Map<number, number>
-) {
-  // @ts-ignore
-  for (const { cross_number, time } of neighbours.get(current)) {
-    if (visited.has(cross_number)) {
-      continue;
-    }
-    // @ts-ignore
-    const timeToNeighbour = minTimes.get(current) + time;
+    const result = navigate(roads, 0, 3);
 
-    // @ts-ignore
-    if (timeToNeighbour < minTimes.get(cross_number)) {
-      minTimes.set(cross_number, timeToNeighbour);
-      parents.set(cross_number, current);
-    }
-  }
-}
+    expect(result).toEqual({ path: [0, 2, 3], time: 20 });
+  });
 
-function chooseMinTimeCross(
-  current: number,
-  minTimes: Map<number, number>,
-  visited: Map<number, boolean>
-): number {
-  let minTimeCross = null;
-  let minTime = Infinity;
+  it("work correctly when isolated nodes exist", () => {
+    const roads = [
+      { from: 8, to: 4, time: 3 },
+      { from: 8, to: 10, time: 3 },
+      { from: 8, to: 7, time: 11 },
+      { from: 4, to: 5, time: 7 },
+      { from: 5, to: 6, time: 7 },
+      { from: 6, to: 9, time: 11 },
+      { from: 9, to: 1, time: 11 },
+      { from: 1, to: 5, time: 5 },
+      { from: 6, to: 7, time: 11 },
+      { from: 8, to: 7, time: 11 },
+      { from: 7, to: 9, time: 11 }
+    ];
 
-  // @ts-ignore
-  for (const crossNumber of minTimes.keys()) {
-    if (visited.has(crossNumber)) {
-      continue;
-    }
+    const result = navigate(roads, 8, 9);
 
-    const time = minTimes.get(crossNumber);
+    expect(result).toEqual({ path: [8, 7, 9], time: 22 });
+  });
 
-    // @ts-ignore
-    if (time < minTime) {
-      // @ts-ignore
-      minTime = time;
-      minTimeCross = crossNumber;
-    }
-  }
+  it("work correctly 1", () => {
+    const roads = [
+      { from: 0, to: 1, time: 7 },
+      { from: 0, to: 2, time: 9 },
+      { from: 0, to: 5, time: 14 },
+      { from: 2, to: 5, time: 2 },
+      { from: 2, to: 3, time: 11 },
+      { from: 5, to: 0, time: 14 },
+      { from: 5, to: 2, time: 2 },
+      { from: 5, to: 4, time: 9 },
+      { from: 4, to: 5, time: 9 },
+      { from: 4, to: 3, time: 6 },
+      { from: 3, to: 4, time: 6 },
+      { from: 3, to: 2, time: 11 },
+      { from: 3, to: 1, time: 15 },
+      { from: 1, to: 0, time: 7 },
+      { from: 1, to: 3, time: 15 },
+      { from: 1, to: 2, time: 10 },
+      { from: 2, to: 1, time: 10 },
+      { from: 2, to: 0, time: 9 }
+    ];
 
-  if (minTimeCross === null) {
-    throw Error();
-  }
+    const result = navigate(roads, 0, 4);
 
-  visited.set(minTimeCross, true);
-  return minTimeCross;
-}
+    expect(result).toEqual({ path: [0, 2, 5, 4], time: 20 });
+  });
 
-function buildPath(parents: Map<number, number>, finish: number) {
-  let current = finish;
-  const path = [];
+  it("work correctly 2", () => {
+    const roads = [
+      { from: 0, to: 1, time: 5 },
+      { from: 0, to: 2, time: 10 },
+      { from: 1, to: 2, time: 10 },
+      { from: 1, to: 3, time: 2 },
+      { from: 2, to: 3, time: 2 },
+      { from: 2, to: 4, time: 5 },
+      { from: 3, to: 2, time: 2 },
+      { from: 3, to: 4, time: 10 }
+    ];
 
-  while (current !== -1) {
-    path.push(current);
-    // @ts-ignore
-    current = parents.get(current);
-  }
+    const result = navigate(roads, 0, 4);
 
-  return path.reverse();
-}
-
-export function navigate(roads: Road[], start: number, finish: number) {
-  const neighbours = new Map();
-  const minTimes = new Map();
-  const parents = new Map();
-  setNeighbours(roads, neighbours, minTimes);
-
-  const visited = new Map();
-
-  let current = start;
-  minTimes.set(current, 0);
-  visited.set(current, true);
-  parents.set(current, -1);
-
-  while (current !== finish) {
-    setMinTimes(current, neighbours, minTimes, visited, parents);
-    current = chooseMinTimeCross(current, minTimes, visited);
-  }
-
-  return { path: buildPath(parents, finish), time: minTimes.get(finish) };
-}
+    expect(result).toEqual({ path: [0, 1, 3, 2, 4], time: 14 });
+  });
+});
